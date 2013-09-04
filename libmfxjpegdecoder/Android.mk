@@ -40,9 +40,9 @@ LOCAL_COPY_HEADERS += \
     include/JPEGCommon.h \
     include/JPEGSysAllocator.h \
 
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
 LOCAL_MODULE := libmfxjpegdecoder
 LOCAL_MODULE_OWNER := intel
 
+LOCAL_MULTILIB := 32
 include $(BUILD_SHARED_LIBRARY)
 
