@@ -43,7 +43,6 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
   LOCAL_SRC_FILES := doc/$(LOCAL_MODULE)
   LOCAL_MODULE_TAGS := optional
   LOCAL_MODULE_CLASS := ETC
-  LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/mediasdk
 
   include $(BUILD_PREBUILT)
 
@@ -57,105 +56,106 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
     LOCAL_REQUIRED_MODULES :=
     LOCAL_REQUIRED_MODULES += libmfx_omx_core
     LOCAL_REQUIRED_MODULES += libmfx_omx_components_hw
-    LOCAL_REQUIRED_MODULES += libmfx_omx_components_sw
     LOCAL_REQUIRED_MODULES += libgabi++-mfx
     LOCAL_REQUIRED_MODULES += libstlport-mfx
-    ifeq ($(TARGET_ARCH), x86)
-        LOCAL_REQUIRED_MODULES += libmfxhw32
-        LOCAL_REQUIRED_MODULES += libmfxsw32
-    else
+    LOCAL_REQUIRED_MODULES += libmfxhw32
+    LOCAL_REQUIRED_MODULES += libmfxsw32
+    LOCAL_REQUIRED_MODULES += libmfx_omx_components_sw
+    ifeq ($(TARGET_ARCH), x86_64)
         LOCAL_REQUIRED_MODULES += libmfxhw64
     endif
     include $(BUILD_PHONY_PACKAGE)
 
-  ifeq ($(TARGET_ARCH), x86)
     include $(CLEAR_VARS)
     LOCAL_MODULE := libmfxhw32
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libmfxhw32
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfxhw32$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := 32
+    LOCAL_SRC_FILES_32 := lib/x86/libmfxhw32$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     include $(CLEAR_VARS)
     LOCAL_MODULE := libmfxsw32
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libmfxsw32
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfxsw32$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := 32
+    LOCAL_SRC_FILES_32 := lib/x86/libmfxsw32$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
-  else
+
     include $(CLEAR_VARS)
     LOCAL_MODULE := libmfxhw64
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libmfxhw64
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfxhw64$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := 64
+    LOCAL_SRC_FILES_64 := lib/x86_64/libmfxhw64$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
-  endif
 
     include $(CLEAR_VARS)
     LOCAL_MODULE := libmfx_omx_core
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libmfx_omx_core
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfx_omx_core$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := both
+    LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_core$(LOCAL_MODULE_SUFFIX)
+    LOCAL_SRC_FILES_64 := lib/x86_64/libmfx_omx_core$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     include $(CLEAR_VARS)
     LOCAL_MODULE := libmfx_omx_components_hw
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libmfx_omx_components_hw
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfx_omx_components_hw$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := both
+    LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_components_hw$(LOCAL_MODULE_SUFFIX)
+    LOCAL_SRC_FILES_64 := lib/x86_64/libmfx_omx_components_hw$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     include $(CLEAR_VARS)
     LOCAL_MODULE := libmfx_omx_components_sw
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libmfx_omx_components_sw
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := 32
+    LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     include $(CLEAR_VARS)
     LOCAL_MODULE := libgabi++-mfx
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libgabi++-mfx
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libgabi++-mfx$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := both
+    LOCAL_SRC_FILES_32 := lib/x86/libgabi++-mfx$(LOCAL_MODULE_SUFFIX)
+    LOCAL_SRC_FILES_64 := lib/x86_64/libgabi++-mfx$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     include $(CLEAR_VARS)
     LOCAL_MODULE := libstlport-mfx
     LOCAL_MODULE_CLASS := SHARED_LIBRARIES
     LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
     LOCAL_MODULE_STEM := libstlport-mfx
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
-    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libstlport-mfx$(LOCAL_MODULE_SUFFIX)
+    LOCAL_MULTILIB := both
+    LOCAL_SRC_FILES_32 := lib/x86/libstlport-mfx$(LOCAL_MODULE_SUFFIX)
+    LOCAL_SRC_FILES_64 := lib/x86_64/libstlport-mfx$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     # Executables
