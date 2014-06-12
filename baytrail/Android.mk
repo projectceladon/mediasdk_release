@@ -38,10 +38,12 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
     LOCAL_REQUIRED_MODULES :=
     LOCAL_REQUIRED_MODULES += libmfx_omx_core
     LOCAL_REQUIRED_MODULES += libmfx_omx_components_hw
+    LOCAL_REQUIRED_MODULES += libmfx_omx_components_sw
     LOCAL_REQUIRED_MODULES += libgabi++-mfx
     LOCAL_REQUIRED_MODULES += libstlport-mfx
     ifeq ($(TARGET_ARCH), x86)
         LOCAL_REQUIRED_MODULES += libmfxhw32
+        LOCAL_REQUIRED_MODULES += libmfxsw32
     else
         LOCAL_REQUIRED_MODULES += libmfxhw64
     endif
@@ -57,6 +59,17 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
     LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfxhw32$(LOCAL_MODULE_SUFFIX)
+    include $(BUILD_PREBUILT)
+
+    include $(CLEAR_VARS)
+    LOCAL_MODULE := libmfxsw32
+    LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+    LOCAL_MODULE_TAGS := optional
+    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
+    LOCAL_MODULE_STEM := libmfxsw32
+    LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+    LOCAL_MODULE_OWNER := intel
+    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfxsw32$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
   else
     include $(CLEAR_VARS)
@@ -91,6 +104,17 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
     LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
     LOCAL_MODULE_OWNER := intel
     LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfx_omx_components_hw$(LOCAL_MODULE_SUFFIX)
+    include $(BUILD_PREBUILT)
+
+    include $(CLEAR_VARS)
+    LOCAL_MODULE := libmfx_omx_components_sw
+    LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+    LOCAL_MODULE_TAGS := optional
+    LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
+    LOCAL_MODULE_STEM := libmfx_omx_components_sw
+    LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+    LOCAL_MODULE_OWNER := intel
+    LOCAL_SRC_FILES := lib/$(TARGET_ARCH)/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     include $(CLEAR_VARS)
