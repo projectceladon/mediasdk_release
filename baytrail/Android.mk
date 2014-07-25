@@ -8,11 +8,30 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
   LOCAL_COPY_HEADERS_TO := mediasdk
 
   LOCAL_COPY_HEADERS := \
+    include/mfxastructures.h \
+    include/mfxaudio++.h \
+    include/mfxaudio.h \
+    include/mfxcamera.h \
+    include/mfxcommon.h \
     include/mfxdefs.h \
-    include/mfxlinux.h \
+    include/mfxenc.h \
+    include/mfxfei.h \
+    include/mfxhdcp.h \
+    include/mfxjpeg.h \
+    include/mfxla.h \
+    include/mfxmvc.h \
+    include/mfxpcp.h \
+    include/mfxplugin++.h \
+    include/mfxplugin.h \
+    include/mfxplugin_internal.h \
+    include/mfxsession.h \
     include/mfxstructures.h \
+    include/mfxvideo++.h \
     include/mfxvideo.h \
-    include/mfxvideo++.h
+    include/mfxvp8.h \
+    include/mfxvp9.h \
+    include/mfxvstructures.h \
+    include/mfxwidi.h
 
   include $(BUILD_COPY_HEADERS)
 
