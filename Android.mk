@@ -6,8 +6,14 @@ ifeq ($(USE_MEDIASDK),true)
 
   MEDIASDK_BIN_REPO := $(LOCAL_PATH)
 
+  UFO_ENABLE_GEN ?= gen7
+
   # Call appropriate Android.mk for the platform
   include $(MEDIASDK_BIN_REPO)/mediasdk/Android.mk
 
+
+  ifeq ($(strip $(UFO_ENABLE_GEN)), gen8)
+    include $(MEDIASDK_BIN_REPO)/cherrytrail/Android.mk
+  endif
 
 endif
