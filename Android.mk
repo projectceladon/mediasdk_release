@@ -1,9 +1,15 @@
 ifeq ($(USE_MEDIASDK),true)
   MEDIASDK_BIN_REPO := $(call my-dir)
 
+  UFO_ENABLE_GEN ?= gen7
+
   # Call appropriate Android.mk for the platform
-  ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
+  ifeq ($(strip $(UFO_ENABLE_GEN)), gen7)
     include $(MEDIASDK_BIN_REPO)/baytrail/Android.mk
+  endif
+
+  ifeq ($(strip $(UFO_ENABLE_GEN)), gen8)
+    include $(MEDIASDK_BIN_REPO)/cherrytrail/Android.mk
   endif
 
 endif
