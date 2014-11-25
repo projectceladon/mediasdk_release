@@ -31,7 +31,9 @@ File Name: mfxcamera.h
 #define __MFXCAMERA_H__
 #include "mfxcommon.h"
 
+#if !defined (__GNUC__)
 #pragma warning(disable: 4201)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
