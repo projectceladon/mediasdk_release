@@ -187,11 +187,10 @@ JpegDecodeStatus JpegDecoder::parse(JpegInfo &jpginfo)
     // Library needs to know what codec is going to be used
     params.mfx.CodecId = MFX_CODEC_JPEG;
 
-    bitstream.Data = new mfxU8[jpginfo.bufsize];
-    memcpy(bitstream.Data, jpginfo.buf, jpginfo.bufsize);
+    bitstream.Data = jpginfo.buf;
     bitstream.DataLength    = bitstream.MaxLength = jpginfo.bufsize;
     bitstream.DataOffset    = 0;
-    bitstream.EncryptedData = 0; // Must be zero since we don't have any encrypted data
+    bitstream.EncryptedData = 0;
     status = mDecoder->DecodeHeader(&bitstream, &params);
     if (MFX_ERR_NONE != status) return JD_ERROR_BITSTREAM;
 
@@ -229,11 +228,10 @@ JpegDecodeStatus JpegDecoder::decode(JpegInfo &jpginfo, RenderTarget &target)
     if (!jpginfo.buf || (jpginfo.bufsize == 0))
         return JD_ERROR_BITSTREAM;
 
-    bitstream.Data = new mfxU8[jpginfo.bufsize];
-    memcpy(bitstream.Data, jpginfo.buf, jpginfo.bufsize);
+    bitstream.Data = jpginfo.buf;
     bitstream.DataLength    = bitstream.MaxLength = jpginfo.bufsize;
     bitstream.DataOffset    = 0;
-    bitstream.EncryptedData = 0; // Must be zero since we don't have any encrypted data
+    bitstream.EncryptedData = 0;
     work_surface = (mfxFrameSurface1 *)calloc(1, sizeof(mfxFrameSurface1));
     memcpy(&(work_surface->Info), mFrameInfo, sizeof(mfxFrameInfo));
     work_surface->Data.Locked = 0;
