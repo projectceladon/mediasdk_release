@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin),)
+ifneq ($(filter $(TARGET_BOARD_PLATFORM),baytrail gmin coho cohol),)
 
   # Include files
   include $(CLEAR_VARS)
