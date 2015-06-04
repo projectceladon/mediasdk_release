@@ -238,6 +238,102 @@ typedef struct OMX_VIDEO_CONFIG_INTEL_DECODER_BUFFER_HANDLE {
     OMX_U8* pNativeHandle;
 } OMX_VIDEO_CONFIG_INTEL_DECODER_BUFFER_HANDLE;
 
+// The structure is used to set HRD parameters on the encoder during
+// initialization/reset, with the following parameter structure
+typedef struct OMX_VIDEO_PARAM_HRD_PARAM
+{
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nHRDBufferSize;      // nHRDBufferSize is used to configure buffer size for HRD model (in kilo-bytes).
+    OMX_U32 nHRDInitialFullness; // nHRDInitialFullness is used to configure initial fullness for HRD model (in kilo-bytes).
+    OMX_BOOL bWriteHRDSyntax;    // bWriteHRDSyntax is used to enable HRD syntax writing to bitstream
+} OMX_VIDEO_PARAM_HRD_PARAM;
+
+// The structure is used to set maximum picture size parameter on
+// the encoder during initialization/reset, with the following parameter structure
+typedef struct OMX_VIDEO_PARAM_MAX_PICTURE_SIZE
+{
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nMaxPictureSize; // nMaxPictureSize is used to configure maximum frame size (in bytes).
+} OMX_VIDEO_PARAM_MAX_PICTURE_SIZE;
+
+// The structure is used to configure target usage (quility vs speed)
+typedef struct OMX_VIDEO_PARAM_TARGET_USAGE
+{
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nTargetUsage; // nTargetUsage is used to configure target usage (quility vs speed) parameter. Values range is [1...7].
+                          //1 means the best quality. 7 means the best speed
+} OMX_VIDEO_PARAM_TARGET_USAGE;
+
+// The structure is used to add user date to the next encoding
+// AVC frame SEI Nalu during encoding with the following parameter structure
+typedef struct OMX_VIDEO_CONFIG_USERDATA
+{
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nUserDataSize; // nUserDataSize is used to inform the size of the user data (in bytes)
+    OMX_U8 *pUserData;     // pUserData is a pointer to the user data needed to be attached to the next encoding frame.
+} OMX_VIDEO_CONFIG_USERDATA;
+
+// The structure is used to set encoder cropping values
+typedef struct OMX_VIDEO_PARAM_ENCODE_FRAME_CROPPING_PARAM
+{
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nCropX;
+    OMX_U32 nCropY;
+    OMX_U32 nCropW;
+    OMX_U32 nCropH;
+} OMX_VIDEO_PARAM_ENCODE_FRAME_CROPPING_PARAM;
+
+typedef struct OMX_VIDEO_PARAM_ENCODE_VUI_CONTROL_PARAM
+{
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U16 nAspectRatioW;
+    OMX_U16 nAspectRatioH;
+    OMX_U16 nVideoFormat;
+    OMX_U16 nColourDescriptionPresent;
+    OMX_U16 nColourPrimaries;
+    OMX_U16 nFixedFrameRate;
+    OMX_U16 nPicStructPresent;
+    OMX_U16 nLowDelayHRD;
+    OMX_BOOL bVideoFullRange;
+    OMX_U32 nReserved[4];
+}
+OMX_VIDEO_PARAM_ENCODE_VUI_CONTROL_PARAM;
+
+// The structure is used to configure encoding dirty rect
+typedef struct OMX_VIDEO_CONFIG_DIRTY_RECT {
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nNumRectangles;
+    OMX_CONFIG_RECTTYPE* pRectangles;
+} OMX_VIDEO_CONFIG_CONFIG_DIRTY_RECT;
+
+// The structure is used to make encoder to release all buffered surfaces
+typedef struct OMX_VIDEO_CONFIG_INTEL_ENCODER_BUFFER_FREE {
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+} OMX_VIDEO_CONFIG_INTEL_ENCODER_BUFFER_FREE;
+
+// Set temporal layer count
+typedef struct OMX_VIDEO_CONFIG_INTEL_TEMPORALLAYERCOUNT {
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_U32 nTemproalLayerCount;
+} OMX_VIDEO_CONFIG_INTEL_TEMPORALLAYERCOUNT;
 
 #define OMX_BUFFERFLAG_TFF 0x00010000
 #define OMX_BUFFERFLAG_BFF 0x00020000
