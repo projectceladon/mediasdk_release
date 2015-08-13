@@ -7,8 +7,7 @@ LOCAL_SRC_FILES := $(addprefix src/, $(notdir $(wildcard $(LOCAL_PATH)/src/*.cpp
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/include \
     $(TARGET_OUT_HEADERS)/mediasdk \
-    $(TARGET_OUT_HEADERS)/libva \
-    ndk/sources/cxx-stl/stlport/stlport
+    $(TARGET_OUT_HEADERS)/libva
 
 LOCAL_SHARED_LIBRARIES += \
     libcutils \
@@ -23,8 +22,6 @@ LOCAL_SHARED_LIBRARIES += \
     libhardware \
     libexpat \
     libmfxhw32 \
-    libstlport-mfx \
-    libgabi++-mfx \
     libdl
 
 LOCAL_CFLAGS := -fexceptions -frtti

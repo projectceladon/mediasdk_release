@@ -58,8 +58,6 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),cherrytrail gmin),)
     LOCAL_REQUIRED_MODULES += libmfx_omx_core
     LOCAL_REQUIRED_MODULES += libmfx_omx_components_hw
     LOCAL_REQUIRED_MODULES += libmfx_omx_components_sw
-    LOCAL_REQUIRED_MODULES += libgabi++-mfx
-    LOCAL_REQUIRED_MODULES += libstlport-mfx
     LOCAL_REQUIRED_MODULES += libmfxhw32
     LOCAL_REQUIRED_MODULES += libmfxsw32
     ifeq ($(TARGET_ARCH), x86_64)
@@ -146,30 +144,6 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),cherrytrail gmin),)
     LOCAL_MULTILIB := both
     LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
     LOCAL_SRC_FILES_64 := lib/x86_64/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
-    include $(BUILD_PREBUILT)
-
-    include $(CLEAR_VARS)
-    LOCAL_MODULE := libgabi++-mfx
-    LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-    LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_STEM := libgabi++-mfx
-    LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
-    LOCAL_MODULE_OWNER := intel
-    LOCAL_MULTILIB := both
-    LOCAL_SRC_FILES_32 := lib/x86/libgabi++-mfx$(LOCAL_MODULE_SUFFIX)
-    LOCAL_SRC_FILES_64 := lib/x86_64/libgabi++-mfx$(LOCAL_MODULE_SUFFIX)
-    include $(BUILD_PREBUILT)
-
-    include $(CLEAR_VARS)
-    LOCAL_MODULE := libstlport-mfx
-    LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-    LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_STEM := libstlport-mfx
-    LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
-    LOCAL_MODULE_OWNER := intel
-    LOCAL_MULTILIB := both
-    LOCAL_SRC_FILES_32 := lib/x86/libstlport-mfx$(LOCAL_MODULE_SUFFIX)
-    LOCAL_SRC_FILES_64 := lib/x86_64/libstlport-mfx$(LOCAL_MODULE_SUFFIX)
     include $(BUILD_PREBUILT)
 
     # Executables
