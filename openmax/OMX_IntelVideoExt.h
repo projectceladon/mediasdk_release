@@ -320,6 +320,15 @@ typedef struct OMX_VIDEO_CONFIG_DIRTY_RECT {
     OMX_CONFIG_RECTTYPE* pRectangles;
 } OMX_VIDEO_CONFIG_CONFIG_DIRTY_RECT;
 
+// The structure is used to control dummy frames insertion
+typedef struct OMX_CONFIG_DUMMYFRAME {
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_BOOL bInsertDummyFrame;
+} OMX_CONFIG_DUMMYFRAME;
+
+
 // The structure is used to make encoder to release all buffered surfaces
 typedef struct OMX_VIDEO_CONFIG_INTEL_ENCODER_BUFFER_FREE {
     OMX_U32 nSize;
