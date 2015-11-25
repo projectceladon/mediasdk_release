@@ -15,7 +15,6 @@ Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 #include "JPEGUtils.h"
 #include "JPEGBaseAllocator.h"
 
-// VAAPI Allocator internal Mem ID
 struct vaapiMemId
 {
     VASurfaceID* m_pSurface;
@@ -23,7 +22,7 @@ struct vaapiMemId
     mfxU32       m_fourcc;
     const mfxU8* m_key;         // to store HW handle from which this surface has been created (for search already created surface by key)
     mfxU8        m_unused;      // to mark created surface which already unused
-    bool         m_bIsTiledFormat; // if true - we don't need to load data manually from input handle
+    bool         m_bUseBufferDirectly; // if true - we don't need to load data manually from input handle
 };
 
 class JpegVaapiFrameAllocator: public JpegFrameAllocator
@@ -32,11 +31,8 @@ public:
     JpegVaapiFrameAllocator(VADisplay dpy);
     virtual ~JpegVaapiFrameAllocator();
 
-    mfxStatus ConvertIMBtoMID(mfxU8* data, mfxU32 length, mfxFrameInfo &mfxInfo, mfxMemId* mid);
-    mfxStatus ConvertGHDLtoMID(const mfxU8* ghandle, mfxFrameInfo &mfxInfo, mfxMemId* pmid);
-    mfxStatus AddExtMID(VASurfaceID surface, mfxMemId* mid, const mfxU8* key, bool bIsTiledFormat, mfxU32 mfxFourCC);
-    mfxStatus FreeExtMID(mfxMemId mid);
-    mfxStatus RegisterBuffer(mfxU8* pBuffer, mfx_pvr_buffer_details_t* pInfo);
+    mfxStatus LoadSurface(const buffer_handle_t handle, bool bIsDecodeTarget, mfxFrameInfo & mfx_info, mfxMemId* pmid);
+    mfxStatus RegisterSurface(VASurfaceID surface, mfxMemId* mid, const mfxU8* key, bool bUseBufferDirectly, mfxU32 mfxFourCC);
 
 protected:
     virtual mfxStatus LockFrame(mfxMemId mid, mfxFrameData *ptr);
@@ -47,17 +43,15 @@ protected:
     virtual mfxStatus ReleaseResponse(mfxFrameAllocResponse *response);
     virtual mfxStatus AllocImpl(mfxFrameAllocRequest *request, mfxFrameAllocResponse *response);
 
-    void upload_yuv_to_surface(unsigned char *newImageBuffer, VASurfaceID surface_id,
-                               int picture_width, int picture_height);
     VADisplay m_dpy;
 
 private:
-    mfxStatus CreateSurfaceFromDRMHandle(const buffer_handle_t handle, mfx_pvr_buffer_details_t* pInfo, VASurfaceID &surface);
-
-    mfxStatus MapGrallocBufferToSurface(const mfxU8* handle, VASurfaceID &surface, mfxFrameInfo &mfxInfo, bool &bIsTiledFormat);
-    mfxStatus CreateSurfaceFromGralloc(const mfxU8* handle, VASurfaceID &surface, mfxFrameInfo &mfxInfo, const intel_ufo_buffer_details_t &info);
-    mfxStatus LoadGrallocBuffer(const mfxU8* handle, const VASurfaceID surface);
+    mfxStatus ConvertGrallocBuffer2MFXMemId(buffer_handle_t handle, bool bIsDecodeTarget, mfxFrameInfo &mfxInfo, mfxMemId* mid);
+    mfxStatus MapGrallocBufferToSurface(const mfxU8* handle, bool bIsDecodeTarget, VASurfaceID &surface, mfxFrameInfo &mfxInfo, bool &bUseBufferDirectly);
+    mfxStatus CreateSurfaceFromGralloc(const mfxU8* handle, bool bIsDecodeTarget, VASurfaceID &surface, mfxFrameInfo &mfxInfo, const intel_ufo_buffer_details_t & info);
     mfxStatus CreateSurface(VASurfaceID &surface, mfxU16 width, mfxU16 height);
+
+    mfxStatus LoadGrallocBuffer(const mfxU8* handle, const VASurfaceID surface);
 
     mfxStatus TouchSurface(VASurfaceID surface);
 
@@ -66,7 +60,7 @@ private:
     mfxMemId* m_MIDs;
     int numMIDs;
     JpegMutex m_mutex;
-
+    gralloc_module_t* m_pGralloc;
 
     JPEG_CLASS_NO_COPY(JpegVaapiFrameAllocator)
 };
