@@ -16,8 +16,6 @@ Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 
 #include <stdio.h>
 
-#define BUFFER_INFO_BYPASS_FLAG                    (1<<15)
-
 /*------------------------------------------------------------------------------*/
 
 #undef JPEG_MODULE_NAME
@@ -86,6 +84,7 @@ JpegVaapiFrameAllocator::JpegVaapiFrameAllocator(VADisplay dpy):
     m_dpy(dpy)
     ,m_MIDs(NULL)
 {
+    hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (hw_module_t const**)&m_pGralloc);
 }
 
 JpegVaapiFrameAllocator::~JpegVaapiFrameAllocator()
@@ -108,7 +107,6 @@ JpegVaapiFrameAllocator::~JpegVaapiFrameAllocator()
 mfxStatus JpegVaapiFrameAllocator::CheckRequestType(mfxFrameAllocRequest *request)
 {
     JPEG_AUTO_TRACE_FUNC();
-
     mfxStatus sts = JpegFrameAllocator::CheckRequestType(request);
     if (MFX_ERR_NONE != sts)
         return sts;
@@ -119,7 +117,7 @@ mfxStatus JpegVaapiFrameAllocator::CheckRequestType(mfxFrameAllocRequest *reques
         return MFX_ERR_UNSUPPORTED;
 }
 
-mfxStatus JpegVaapiFrameAllocator::AddExtMID(VASurfaceID surface, mfxMemId* mid, const mfxU8* key, bool bIsTiledFormat, mfxU32 mfxFourCC)
+mfxStatus JpegVaapiFrameAllocator::RegisterSurface(VASurfaceID surface, mfxMemId* mid, const mfxU8* key, bool bUseBufferDirectly, mfxU32 mfxFourCC)
 {
     JPEG_AUTO_TRACE_FUNC();
     JpegAutoLock lock(m_mutex);
@@ -148,16 +146,18 @@ mfxStatus JpegVaapiFrameAllocator::AddExtMID(VASurfaceID surface, mfxMemId* mid,
         { // add new extMID
             vaapiMemId* pmid = (vaapiMemId*)malloc(sizeof(vaapiMemId) + sizeof(VASurfaceID));
             mfxU8* ddd = (mfxU8*)pmid;
-
-            memset(pmid, 0, sizeof(vaapiMemId) + sizeof(VASurfaceID));
-            pmid->m_pSurface = (VASurfaceID*)(mfxU8*)(ddd + sizeof(vaapiMemId));//(VASurfaceID*)(pmid + 1);
-            *pmid->m_pSurface = surface;
-            pmid->m_fourcc = mfxFourCC;
-            pmid->m_unused = false;
-            pmid->m_key = key;
-            pmid->m_bIsTiledFormat = bIsTiledFormat;
-            out_mid = pmid;
-            m_extMIDs.push_back(pmid);
+            if (pmid != NULL)
+            {
+                memset(pmid, 0, sizeof(vaapiMemId) + sizeof(VASurfaceID));
+                pmid->m_pSurface = (VASurfaceID*)(mfxU8*)(ddd + sizeof(vaapiMemId));//(VASurfaceID*)(pmid + 1);
+                *pmid->m_pSurface = surface;
+                pmid->m_fourcc = mfxFourCC;
+                pmid->m_unused = false;
+                pmid->m_key = key;
+                pmid->m_bUseBufferDirectly = bUseBufferDirectly;
+                out_mid = pmid;
+                m_extMIDs.push_back(pmid);
+            }
         }
 
         if (out_mid)
@@ -169,100 +169,42 @@ mfxStatus JpegVaapiFrameAllocator::AddExtMID(VASurfaceID surface, mfxMemId* mid,
     return mfx_res;
 }
 
-mfxStatus JpegVaapiFrameAllocator::FreeExtMID(mfxMemId mid)
-{
-    JPEG_AUTO_TRACE_FUNC();
-    JpegAutoLock lock(m_mutex);
-
-    if (NULL == mid) return MFX_ERR_NULL_PTR;
-
-    for (std::list<vaapiMemId*>::iterator it = m_extMIDs.begin(); it != m_extMIDs.end(); it++)
-    {
-        if ((*it) == mid)
-        { // don't release, just mark as free for next use
-            vaapiMemId* pmid = (*it);
-            pmid->m_unused = true;
-            return MFX_ERR_NONE;
-        }
-    }
-    return MFX_ERR_UNKNOWN;
-}
-
-mfxStatus JpegVaapiFrameAllocator::RegisterBuffer(mfxU8* pBuffer, mfx_pvr_buffer_details_t* pInfo)
+mfxStatus JpegVaapiFrameAllocator::LoadSurface(const buffer_handle_t handle,
+                                               bool bIsDecodeTarget,
+                                               mfxFrameInfo & mfx_info,
+                                               mfxMemId* pmid)
 {
     JPEG_AUTO_TRACE_FUNC();
     mfxStatus mfx_res = MFX_ERR_NONE;
-    VASurfaceID surface = VA_INVALID_ID;
-    mfxMemId mid = NULL;
-    mfx_res = CreateSurfaceFromDRMHandle((buffer_handle_t)pBuffer, pInfo, surface);
 
-    if (mfx_res == MFX_ERR_NONE)
-        mfx_res = AddExtMID(surface, &mid, 0, true, MFX_FOURCC_NV12);
+    mfx_res = ConvertGrallocBuffer2MFXMemId(handle, bIsDecodeTarget, mfx_info, pmid);
 
     JPEG_AUTO_TRACE_I32(mfx_res);
     return mfx_res;
 }
 
-mfxStatus JpegVaapiFrameAllocator::ConvertIMBtoMID(mfxU8* data, mfxU32 length, mfxFrameInfo &mfxInfo, mfxMemId* pmid)
+mfxStatus JpegVaapiFrameAllocator::ConvertGrallocBuffer2MFXMemId(buffer_handle_t handle, bool bIsDecodeTarget, mfxFrameInfo &mfxInfo, mfxMemId* pmid)
 {
     JPEG_AUTO_TRACE_FUNC();
     mfxStatus mfx_res = MFX_ERR_NONE;
 
-    MetadataBuffer buffer;
-    memset(&buffer, 0, sizeof(buffer));
+    VASurfaceID surface;
 
-    VASurfaceID surface = VA_INVALID_ID;
+    bool bUseBufferDirectly = true;
 
-    if (!data) mfx_res = MFX_ERR_NULL_PTR;
+    if (handle) mfx_res = MapGrallocBufferToSurface((const mfxU8*)handle, bIsDecodeTarget, surface, mfxInfo, bUseBufferDirectly);
+    else surface = VA_INVALID_ID;
 
-    if ((MFX_ERR_NONE == mfx_res) && (length >= sizeof(MfxMetadataBufferType) + sizeof(buffer_handle_t)))
-    {
-        mfx_res = jpeg_get_metadatabuffer_info(data, length, &buffer);
-    }
-    else
-        mfx_res = MFX_ERR_NOT_ENOUGH_BUFFER;
-
-    JPEG_AUTO_TRACE_I32(mfxInfo.Width);
-    JPEG_AUTO_TRACE_I32(buffer.info.width);
-
-    if ((buffer.info.width != 0) && (mfxInfo.Width != buffer.info.width)) // height comparison is commented due to possible alignment difference
-    {
-        mfx_res = MFX_ERR_INCOMPATIBLE_VIDEO_PARAM;
-    }
-
-    JPEG_AUTO_TRACE_P(buffer.handle);
-
-    bool bIsTiledFormat = false;
     if (MFX_ERR_NONE == mfx_res)
-    {   // Map handle to vaSurfaces
-        if (MfxMetadataBufferTypeGrallocSource == buffer.type)
-            mfx_res = MapGrallocBufferToSurface(buffer.handle, surface, mfxInfo, bIsTiledFormat);
-        else
-            mfx_res = MFX_ERR_UNSUPPORTED;
+    {
+        mfx_res = RegisterSurface(surface, pmid, (const mfxU8*)handle, bUseBufferDirectly, mfxInfo.FourCC);
     }
 
-    if (MFX_ERR_NONE == mfx_res) mfx_res = AddExtMID(surface, pmid, buffer.handle, bIsTiledFormat, mfxInfo.FourCC);
-
     JPEG_AUTO_TRACE_I32(mfx_res);
     return mfx_res;
 }
 
-mfxStatus JpegVaapiFrameAllocator::ConvertGHDLtoMID(const mfxU8* ghandle, mfxFrameInfo &mfxInfo, mfxMemId* pmid)
-{
-    JPEG_AUTO_TRACE_FUNC();
-    mfxStatus mfx_res = MFX_ERR_NONE;
-    VASurfaceID surface = VA_INVALID_ID;
-
-    bool bIsTiledFormat = false;
-    mfx_res = MapGrallocBufferToSurface(ghandle, surface, mfxInfo, bIsTiledFormat);
-
-    if (MFX_ERR_NONE == mfx_res) mfx_res = AddExtMID(surface, pmid, ghandle, bIsTiledFormat, mfxInfo.FourCC);
-
-    JPEG_AUTO_TRACE_I32(mfx_res);
-    return mfx_res;
-}
-
-mfxStatus JpegVaapiFrameAllocator::MapGrallocBufferToSurface(const mfxU8* handle, VASurfaceID &surface, mfxFrameInfo &mfxInfo, bool &bIsTiledFormat)
+mfxStatus JpegVaapiFrameAllocator::MapGrallocBufferToSurface(const mfxU8* handle, bool bIsDecodeTarget, VASurfaceID &surface, mfxFrameInfo &mfxInfo, bool &bUseBufferDirectly)
 {
     JPEG_AUTO_TRACE_FUNC();
     mfxStatus mfx_res = MFX_ERR_NONE;
@@ -272,59 +214,62 @@ mfxStatus JpegVaapiFrameAllocator::MapGrallocBufferToSurface(const mfxU8* handle
     JPEG_AUTO_TRACE_P(handle);
 
     for (std::list<vaapiMemId*>::iterator it = m_extMIDs.begin(); it != m_extMIDs.end(); it++)
-    { // search for surfaces by key
+    {
         vaapiMemId* pmid = (*it);
-
-        if (pmid->m_key == handle)
+        if (handle != NULL && pmid->m_key == handle)
         {
-            surface = *pmid->m_pSurface;
-            bIsTiledFormat = pmid->m_bIsTiledFormat;
-            JPEG_AUTO_TRACE_MSG("Surface is found");
-            JPEG_AUTO_TRACE_I32(surface);
-            break;
+            if (pmid->m_key == handle)
+            {
+                surface = *pmid->m_pSurface;
+                bUseBufferDirectly = pmid->m_bUseBufferDirectly;
+                JPEG_AUTO_TRACE_MSG("Surface is found");
+                JPEG_AUTO_TRACE_I32(surface);
+                break;
+            }
         }
     }
 
-    if (VA_INVALID_ID == surface)
+    if (MFX_ERR_NONE == mfx_res && VA_INVALID_ID == surface)
     {
-        gralloc_module_t* pGralloc = NULL;
         intel_ufo_buffer_details_t info;
-
         JPEG_ZERO_MEMORY(info);
-        int err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (hw_module_t const**)&pGralloc);
-        if (!pGralloc) err = -1;
-        if (0 == err) err = pGralloc->perform(pGralloc, INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_INFO, (buffer_handle_t)handle, &info);
+        *reinterpret_cast<uint32_t*>(&info) = sizeof(info);
+
+        int err = 0;
+        if (m_pGralloc) err = m_pGralloc->perform(m_pGralloc, INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_INFO, (buffer_handle_t)handle, &info);
+        if (0 != err || !m_pGralloc) mfx_res = MFX_ERR_UNKNOWN;
         JPEG_AUTO_TRACE_U32(info.format);
 
+        if (bIsDecodeTarget)
+        {
+            bUseBufferDirectly = true;
+        }
         if (JPEG_PIXEL_FORMAT_NV12_TILED_INTEL == info.format   || // HAL_PIXEL_FORMAT_NV12_TILED_INTEL = 0x100
             JPEG_INTEL_COLOR_FormatVa_NV12_Tiled == info.format ||
             HAL_PIXEL_FORMAT_RGBA_8888 == info.format)            // HAL_PIXEL_FORMAT_RGBA_8888 = 1
         {
-            bIsTiledFormat = true;
+            bUseBufferDirectly = true;
         }
+        else
+            bUseBufferDirectly = false;
 
-        if (0 != err)
-        {
-            JPEG_AUTO_TRACE_MSG("Failed to get gralloc module or get handle info");
-            mfx_res = MFX_ERR_UNKNOWN;
-        }
         if (MFX_ERR_NONE == mfx_res)
         {
-            if (bIsTiledFormat)
-                mfx_res = CreateSurfaceFromGralloc(handle, surface, mfxInfo, info);
+            if (bUseBufferDirectly)
+                mfx_res = CreateSurfaceFromGralloc(handle, bIsDecodeTarget, surface, mfxInfo, info);
             else
                 mfx_res = CreateSurface(surface, info.width, info.height);
         }
     }
 
-    if (MFX_ERR_NONE == mfx_res && false == bIsTiledFormat)
+    if (MFX_ERR_NONE == mfx_res && false == bUseBufferDirectly)
         mfx_res = LoadGrallocBuffer(handle, surface);
 
     JPEG_AUTO_TRACE_I32(mfx_res);
     return mfx_res;
 }
 
-mfxStatus JpegVaapiFrameAllocator::CreateSurfaceFromGralloc(const mfxU8* handle, VASurfaceID &surface, mfxFrameInfo &mfxInfo, const intel_ufo_buffer_details_t &info)
+mfxStatus JpegVaapiFrameAllocator::CreateSurfaceFromGralloc(const mfxU8* handle, bool bIsDecodeTarget, VASurfaceID &surface, mfxFrameInfo &mfxInfo, const intel_ufo_buffer_details_t & info)
 {
     JPEG_AUTO_TRACE_FUNC();
     mfxStatus mfx_res = MFX_ERR_NONE;
@@ -333,17 +278,24 @@ mfxStatus JpegVaapiFrameAllocator::CreateSurfaceFromGralloc(const mfxU8* handle,
 
     JPEG_AUTO_TRACE_I32(info.width);
     JPEG_AUTO_TRACE_I32(info.height);
+    JPEG_AUTO_TRACE_I32(info.allocWidth);
+    JPEG_AUTO_TRACE_I32(info.allocHeight);
     JPEG_AUTO_TRACE_I32(info.pitch);
-    JPEG_AUTO_TRACE_I32(info.name);
+
+    mfxU32 width = bIsDecodeTarget ? info.allocWidth : info.width;
+    mfxU32 height = bIsDecodeTarget ? info.allocHeight : info.height;
 
     VASurfaceAttrib attrib;
+    JPEG_ZERO_MEMORY(attrib);
+
     VASurfaceAttribExternalBuffers surfExtBuf;
+    JPEG_ZERO_MEMORY(surfExtBuf);
 
     mfxInfo.FourCC = ConvertVAFourccToMfxFormat(ConvertGrallocFourccToVAFormat(info.format));
 
     surfExtBuf.pixel_format = ConvertGrallocFourccToVAFormat(info.format);
-    surfExtBuf.width = info.width;
-    surfExtBuf.height = info.height;
+    surfExtBuf.width = width;
+    surfExtBuf.height = height;
     surfExtBuf.pitches[0] = info.pitch;
     surfExtBuf.num_planes = 2;
     surfExtBuf.num_buffers = 1;
@@ -356,11 +308,18 @@ mfxStatus JpegVaapiFrameAllocator::CreateSurfaceFromGralloc(const mfxU8* handle,
     attrib.value.value.p = &surfExtBuf;
 
     VAStatus va_res = vaCreateSurfaces(m_dpy, VA_RT_FORMAT_YUV420,
-        info.width, info.height,
+        width, height,
         &surface, 1, &attrib, 1);
     mfx_res = va_to_mfx_status(va_res);
-    JPEG_AUTO_TRACE_I32(surface);
 
+    if (MFX_ERR_NONE == mfx_res)
+    {
+        // workaround for a 4kx2k playback performance issue
+        if (bIsDecodeTarget && ((mfxInfo.Width >= 2048) || (mfxInfo.Height >= 2048)))
+            mfx_res = TouchSurface(surface);
+    }
+
+    JPEG_AUTO_TRACE_I32(surface);
     JPEG_AUTO_TRACE_I32(mfx_res);
     return mfx_res;
 }
@@ -371,14 +330,13 @@ mfxStatus JpegVaapiFrameAllocator::LoadGrallocBuffer(const mfxU8* handle, const 
     mfxStatus mfx_res = MFX_ERR_NONE;
 
     intel_ufo_buffer_details_t info;
-    gralloc_module_t* pGralloc = NULL;
-
     JPEG_ZERO_MEMORY(info);
-    int err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (hw_module_t const**)&pGralloc);
-    if (!pGralloc) err = -1;
-    if (0 == err) err = pGralloc->perform(pGralloc, INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_INFO, (buffer_handle_t)handle, &info);
+    *reinterpret_cast<uint32_t*>(&info) = sizeof(info);
 
-    if (0 != err)
+    int err = 0;
+    if (m_pGralloc) err = m_pGralloc->perform(m_pGralloc, INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_INFO, (buffer_handle_t)handle, &info);
+
+    if (0 != err || !m_pGralloc)
     {
         JPEG_AUTO_TRACE_MSG("Failed to get gralloc module or get handle info");
         mfx_res = MFX_ERR_UNKNOWN;
@@ -387,6 +345,8 @@ mfxStatus JpegVaapiFrameAllocator::LoadGrallocBuffer(const mfxU8* handle, const 
     mfxU8 *img = NULL;
     if (MFX_ERR_NONE == mfx_res)
     {
+        JPEG_AUTO_TRACE_I32(info.width);
+        JPEG_AUTO_TRACE_I32(info.height);
         const android::Rect rect(info.width, info.height);
         android::status_t res = android::GraphicBufferMapper::get().lock((buffer_handle_t)handle,
                                                                         GRALLOC_USAGE_HW_VIDEO_ENCODER,
@@ -454,49 +414,6 @@ mfxStatus JpegVaapiFrameAllocator::LoadGrallocBuffer(const mfxU8* handle, const 
     return mfx_res;
 }
 
-mfxStatus JpegVaapiFrameAllocator::CreateSurfaceFromDRMHandle(const buffer_handle_t handle, mfx_pvr_buffer_details_t* pInfo, VASurfaceID &surface)
-{
-    JPEG_AUTO_TRACE_FUNC();
-    mfxStatus mfx_res = MFX_ERR_NONE;
-
-    VAStatus                        st;
-    VASurfaceAttrib                 attrib_list;
-    VASurfaceAttribExternalBuffers  vaSurfaceExternBuf;
-    //uint32_t fourcc = pixelFormat2Fourcc(pixel_format);
-    vaSurfaceExternBuf.pixel_format = VA_FOURCC_NV12;
-    vaSurfaceExternBuf.width        = pInfo->width;
-    vaSurfaceExternBuf.height       = pInfo->height;
-    vaSurfaceExternBuf.pitches[0]   = pInfo->pitch;
-    vaSurfaceExternBuf.buffers      = (long unsigned int *)&handle;
-    vaSurfaceExternBuf.num_buffers  = 1;
-    vaSurfaceExternBuf.flags        = VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM;
-
-    attrib_list.type          = VASurfaceAttribExternalBufferDescriptor;
-    attrib_list.flags         = VA_SURFACE_ATTRIB_SETTABLE;
-    attrib_list.value.type    = VAGenericValueTypePointer;
-    attrib_list.value.value.p = (void *)&vaSurfaceExternBuf;
-
-    st = vaCreateSurfaces(m_dpy,
-            VA_RT_FORMAT_YUV420,
-            pInfo->width,
-            pInfo->height,
-            &surface,
-            1,
-            &attrib_list,
-            1);
-    mfx_res = va_to_mfx_status(st);
-
-#if 1   // woraround for 4kx2k video playback performace issue
-    if (MFX_ERR_NONE == mfx_res)
-    {
-        mfx_res = TouchSurface(surface);
-    }
-#endif
-
-    JPEG_AUTO_TRACE_I32(mfx_res);
-    return mfx_res;
-}
-
 mfxStatus JpegVaapiFrameAllocator::CreateSurface(VASurfaceID &surface, mfxU16 width, mfxU16 height)
 {
     JPEG_AUTO_TRACE_FUNC();
@@ -538,7 +455,7 @@ mfxStatus JpegVaapiFrameAllocator::TouchSurface(VASurfaceID surface)
         va_res = vaMapBuffer(m_dpy, image.buf, (void **) &buffer);
         if (VA_STATUS_SUCCESS == va_res)
         {
-            *buffer = 0xa5; // can have any value
+            *buffer = 0x0; // can have any value
             vaUnmapBuffer(m_dpy, image.buf);
         }
         vaDestroyImage(m_dpy, image.image_id);
@@ -551,21 +468,21 @@ mfxStatus JpegVaapiFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxF
 {
     JPEG_AUTO_TRACE_FUNC();
     JpegAutoLock lock(m_mutex);
-
     mfxStatus mfx_res = MFX_ERR_NONE;
     VAStatus  va_res  = VA_STATUS_SUCCESS;
     unsigned int va_fourcc = 0;
-    VASurfaceID* surfaces  = NULL;
+    VASurfaceID* surfaces = NULL;
     VASurfaceAttrib attrib;
     vaapiMemId *vaapi_mids = NULL, *vaapi_mid = NULL;
     mfxMemId* mids = NULL;
-    mfxU32 fourcc  = request->Info.FourCC;
+    mfxU32 fourcc = request->Info.FourCC;
     mfxU16 surfaces_num = request->NumFrameSuggested, numAllocated = 0, i = 0;
     bool bCreateSrfSucceeded = false;
 
     memset(response, 0, sizeof(mfxFrameAllocResponse));
 
     response->reserved[1] = request->Type;
+
     va_fourcc = ConvertMfxFourccToVAFormat(fourcc);
     if (!va_fourcc || ((VA_FOURCC_NV12 != va_fourcc) &&
                        (VA_FOURCC_YV12 != va_fourcc) &&
@@ -575,33 +492,29 @@ mfxStatus JpegVaapiFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxF
     {
         return MFX_ERR_MEMORY_ALLOC;
     }
-
     if (!surfaces_num)
     {
         return MFX_ERR_MEMORY_ALLOC;
     }
-
     if (!(request->Type & JPEG_MEMTYPE_GRALLOC))
     {
         /* at the moment: encoder plug-in */
         if (MFX_ERR_NONE == mfx_res)
         {
-
-            surfaces =  (VASurfaceID*)calloc(surfaces_num, sizeof(VASurfaceID));
+            surfaces = (VASurfaceID*)calloc(surfaces_num, sizeof(VASurfaceID));
             vaapi_mids = (vaapiMemId*)calloc(surfaces_num, sizeof(vaapiMemId));
             mids = (mfxMemId*)calloc(surfaces_num, sizeof(mfxMemId));
-            if ((NULL == surfaces) || (NULL == vaapi_mids) || (NULL == mids))
-                mfx_res = MFX_ERR_MEMORY_ALLOC;
+            if ((NULL == surfaces) || (NULL == vaapi_mids) || (NULL == mids)) mfx_res = MFX_ERR_MEMORY_ALLOC;
         }
-
         if (MFX_ERR_NONE == mfx_res)
         {
             if (VA_FOURCC_P208 != va_fourcc)
             {
-                attrib.type          = VASurfaceAttribPixelFormat;
-                attrib.value.type    = VAGenericValueTypeInteger;
+                attrib.type = VASurfaceAttribPixelFormat;
+                attrib.value.type = VAGenericValueTypeInteger;
                 attrib.value.value.i = va_fourcc;
-                attrib.flags         = VA_SURFACE_ATTRIB_SETTABLE;
+                attrib.flags = VA_SURFACE_ATTRIB_SETTABLE;
+
                 va_res = vaCreateSurfaces(m_dpy,
                                         VA_RT_FORMAT_YUV420,
                                         request->Info.Width, request->Info.Height,
@@ -614,7 +527,7 @@ mfxStatus JpegVaapiFrameAllocator::AllocImpl(mfxFrameAllocRequest *request, mfxF
             else
             {
                 VAContextID context_id = request->reserved[0];
-                int codedbuf_size = (request->Info.Width * request->Info.Height) * 400 / (16 * 16); //from libva spec
+                mfxU32 codedbuf_size = (request->Info.Width * request->Info.Height) * 400LL / (16 * 16);
 
                 for (numAllocated = 0; numAllocated < surfaces_num; numAllocated++)
                 {
@@ -847,6 +760,7 @@ mfxStatus JpegVaapiFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)
                 else mfx_res = MFX_ERR_LOCK_MEMORY;
                 break;
             case VA_FOURCC_ARGB:
+            case VA_FOURCC_ABGR:
                 if (vaapi_mid->m_fourcc == MFX_FOURCC_RGB4)
                 {
                     ptr->Pitch = (mfxU16)vaapi_mid->m_image.pitches[0];
@@ -908,46 +822,4 @@ mfxStatus JpegVaapiFrameAllocator::GetFrameHDL(mfxMemId mid, mfxHDL *handle)
 
     *handle = vaapi_mid->m_pSurface; //VASurfaceID* <-> mfxHDL
     return MFX_ERR_NONE;
-}
-
-void JpegVaapiFrameAllocator::upload_yuv_to_surface(unsigned char *newImageBuffer, VASurfaceID surface_id, int picture_width, int picture_height)
-{
-    JPEG_AUTO_TRACE_FUNC();
-    VAImage surface_image;
-    VAStatus va_status;
-    void *surface_p = NULL;
-    unsigned char *y_src, *u_src, *v_src;
-    unsigned char *y_dst, *u_dst, *v_dst;
-    int row;
-    va_status = vaDeriveImage(m_dpy, surface_id, &surface_image);
-
-    if(va_status != VA_STATUS_SUCCESS) return ;
-    int y_size = picture_width * picture_height;
-    int u_size = (picture_width >> 1) * (picture_height >> 1);
-
-    vaMapBuffer(m_dpy, surface_image.buf, &surface_p);
-    y_src = newImageBuffer;
-    u_src = newImageBuffer + y_size; /* UV offset for NV12 */
-    v_src = newImageBuffer + y_size + u_size;
-
-    y_dst = (unsigned char *)surface_p + surface_image.offsets[0];
-    u_dst = (unsigned char *)surface_p + surface_image.offsets[1]; /* UV offset for NV12 */
-    v_dst = (unsigned char *)surface_p + surface_image.offsets[2];
-
-    /* Y plane */
-    for (row = 0; row < surface_image.height; row++) {
-        memcpy(y_dst, y_src, surface_image.width);
-        y_dst += surface_image.pitches[0];
-        y_src += picture_width;
-    }
-
-    for (row = 0; row < surface_image.height / 2; row++)
-    {
-        memcpy(u_dst, u_src, surface_image.width);
-        u_dst += surface_image.pitches[1];
-        u_src += picture_width;
-    }
-
-    vaUnmapBuffer(m_dpy, surface_image.buf);
-    vaDestroyImage(m_dpy, surface_image.image_id);
 }

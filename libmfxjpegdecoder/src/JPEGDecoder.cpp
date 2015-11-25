@@ -116,15 +116,10 @@ JpegDecodeStatus JpegDecoder::init(int width, int height, RenderTarget **targets
     mFrameAllocator = new JpegVaapiFrameAllocator((VADisplay)mDisplay);
     if (!mFrameAllocator) return JD_INITIALIZATION_ERROR;
 
-    mfx_pvr_buffer_details_t bufferInfo;
     for (int i = 0; i < num ; i++)
     {
-        memset(&bufferInfo, 0, sizeof(mfx_pvr_buffer_details_t));
-        bufferInfo.width  = targets[i]->width;
-        bufferInfo.height = targets[i]->height;
-        bufferInfo.format = targets[i]->format;
-        bufferInfo.pitch  = targets[i]->stride;
-        mFrameAllocator->RegisterBuffer((mfxU8*)targets[i]->handle, &bufferInfo);
+        mfxMemId mid;
+        mFrameAllocator->LoadSurface((const buffer_handle_t)(targets[i]->handle), true, *mFrameInfo, &mid);
         mMfxSurfaceMap[targets[i]->handle] = i;
     }
     mfxFrameAllocRequest  iorequest;
