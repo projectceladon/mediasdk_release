@@ -26,13 +26,8 @@
 #undef LOG_TAG
 #define LOG_TAG "isv-omxil"
 
-#define WRS_CORE_NAME "libwrs_omxil_core_pvwrapped.so"
 #define CORE_NUMBER 1
-#ifdef USE_MEDIASDK
 #define MSDK_CORE_NAME "libmfx_omx_core.so"
-#undef CORE_NUMBER
-#define CORE_NUMBER 2
-#endif
 
 using namespace android;
 using namespace intel::isv;
@@ -63,13 +58,8 @@ OMX_API OMX_ERRORTYPE OMX_APIENTRY OMX_Init(void)
     if (!g_initialized) {
         for (OMX_U32 i = 0; i < CORE_NUMBER; i++) {
 
-            void* libHandle = NULL;
-            if (i == 0)
-                libHandle = dlopen(WRS_CORE_NAME, RTLD_LAZY);
-#ifdef USE_MEDIASDK
-            else
-                libHandle = dlopen(MSDK_CORE_NAME, RTLD_LAZY);
-#endif
+            void* libHandle = dlopen(MSDK_CORE_NAME, RTLD_LAZY);
+
             if (libHandle != NULL) {
                 g_cores[i].mLibHandle = libHandle;
                 g_cores[i].mInit = (ISVOMXCore::InitFunc)dlsym(libHandle, "OMX_Init");
