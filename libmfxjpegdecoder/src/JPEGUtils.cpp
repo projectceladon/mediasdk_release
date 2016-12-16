@@ -184,9 +184,9 @@ void jpeg_trace::printf_i64(const char* name, mfxI64 value)
     }
 #else
     if (taskname)
-        __android_log_print(JPEG_LOG_LEVEL, JPEG_LOG_TAG, "%s: %s: %s: %s = %ld", modulename, function, taskname, name, value);
+        __android_log_print(JPEG_LOG_LEVEL, JPEG_LOG_TAG, "%s: %s: %s: %s = %lld", modulename, function, taskname, name, value);
     else
-        __android_log_print(JPEG_LOG_LEVEL, JPEG_LOG_TAG, "%s: %s: %s = %ld", modulename, function, name, value);
+        __android_log_print(JPEG_LOG_LEVEL, JPEG_LOG_TAG, "%s: %s: %s = %lld", modulename, function, name, value);
 
 #endif
 }

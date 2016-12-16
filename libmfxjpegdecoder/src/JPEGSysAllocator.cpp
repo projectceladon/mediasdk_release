@@ -170,14 +170,14 @@ mfxStatus JpegSysFrameAllocator::Init(mfxAllocatorParams *pParams)
 
 mfxStatus JpegSysFrameAllocator::Close()
 {
-    mfxStatus sts;// = JpegFrameAllocator::Close();
+//    mfxStatus sts;// = JpegFrameAllocator::Close();
 
     if (m_bOwnBufferAllocator)
     {
         delete m_pBufferAllocator;
         m_pBufferAllocator = 0;
     }
-    return sts;
+    return MFX_ERR_NONE;
 }
 
 mfxStatus JpegSysFrameAllocator::LockFrame(mfxMemId mid, mfxFrameData *ptr)

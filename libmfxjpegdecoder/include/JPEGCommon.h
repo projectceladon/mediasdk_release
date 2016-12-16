@@ -14,6 +14,7 @@ Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 #include <map>
 
 #include <ui/GraphicBufferMapper.h>
+#include <ui/Rect.h>
 #include <ufo/gralloc.h>
 #include <ufo/graphics.h>
 #include <media/hardware/MetadataBufferType.h>
@@ -21,6 +22,8 @@ Copyright(c) 2014 Intel Corporation. All Rights Reserved.
 #include <va/va.h>
 #include <va/va_android.h>
 #include <va/va_drmcommon.h>
+
+#include <android/log.h>
 
 // MFX headers
 #include <mfxdefs.h>
