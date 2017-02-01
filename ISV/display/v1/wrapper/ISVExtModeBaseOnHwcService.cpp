@@ -153,7 +153,7 @@ status_t ISVExtModeBaseOnHwcService::informObserver(int64_t videoSessionID, bool
     }
     ALOGV("Inform ExtModeObserver");
     char msg[VIDEO_CLIENT_MSG_LENGTH] = "\0";
-    int32_t pos = sprintf(msg, "%lld", videoSessionID);
+    int32_t pos = sprintf(msg, "%ld", videoSessionID);
     pos += sprintf(msg + pos, ":%d", (isPlaying ? 1 : 0));
     ALOGV("Inform EXTModeObserver %s", msg);
 
