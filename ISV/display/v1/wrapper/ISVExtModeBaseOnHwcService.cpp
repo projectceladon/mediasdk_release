@@ -29,6 +29,7 @@
 #include "IService.h"
 #include "ISVExtModeBaseOnHwcService.h"
 #include <ISVProfile.h>
+#include <inttypes.h>
 #undef LOG_TAG
 #define LOG_TAG "ISVDPY"
 
@@ -129,7 +130,7 @@ status_t ISVExtModeBaseOnHwcService::setVideoState(int64_t videoHandler, bool is
         ALOGV("Same playback state %d, Ignore it", isPlaying);
         return UNKNOWN_ERROR;
     }
-    ALOGV("Set video session %ld state %d", videoHandler, isPlaying);
+    ALOGV("Set video session %" PRId64 " state %d", videoHandler, isPlaying);
     sp<IService> hwcS = interface_cast<IService>(
            defaultServiceManager()->getService(String16(INTEL_HWC_SERVICE_NAME)));
     if (hwcS == NULL)
@@ -153,7 +154,7 @@ status_t ISVExtModeBaseOnHwcService::informObserver(int64_t videoSessionID, bool
     }
     ALOGV("Inform ExtModeObserver");
     char msg[VIDEO_CLIENT_MSG_LENGTH] = "\0";
-    int32_t pos = sprintf(msg, "%ld", videoSessionID);
+    int32_t pos = sprintf(msg, "%" PRId64, videoSessionID);
     pos += sprintf(msg + pos, ":%d", (isPlaying ? 1 : 0));
     ALOGV("Inform EXTModeObserver %s", msg);
 
