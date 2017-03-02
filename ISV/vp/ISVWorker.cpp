@@ -331,6 +331,11 @@ status_t ISVWorker::configFilters(ISVFilterParameter *filterParam, uint32_t coun
         return STATUS_ERROR;
     }
 
+    if (count >= ISVFilterCount) {
+        ALOGE("%s: invalid count", __func__);
+        return STATUS_ERROR;
+    }
+
     if (memcmp(&mFilterParam[0], filterParam, sizeof(ISVFilterParameter) * count) != 0) {
         ALOGI("%s: Filters changed.", __func__);
         memcpy(&mFilterParam[0], filterParam, sizeof(ISVFilterParameter) * count);
