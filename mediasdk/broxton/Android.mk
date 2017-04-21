@@ -39,11 +39,12 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
     include $(CLEAR_VARS)
 
     LOCAL_MODULE := mediasdk_release_notes.pdf
+    LOCAL_PROPRIETARY_MODULE := true
     LOCAL_MODULE_OWNER := intel
     LOCAL_SRC_FILES := doc/$(LOCAL_MODULE)
     LOCAL_MODULE_TAGS := optional
     LOCAL_MODULE_CLASS := ETC
-    LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/mediasdk
+    LOCAL_MODULE_RELATIVE_PATH := mediasdk
 
     include $(BUILD_PREBUILT)
 
@@ -72,6 +73,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfxhw32
+        LOCAL_PROPRIETARY_MODULE := true
         LOCAL_MODULE_CLASS := SHARED_LIBRARIES
         LOCAL_MODULE_TAGS := optional
         LOCAL_MODULE_STEM := libmfxhw32
@@ -83,6 +85,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfxsw32
+        LOCAL_PROPRIETARY_MODULE := true
         LOCAL_MODULE_CLASS := SHARED_LIBRARIES
         LOCAL_MODULE_TAGS := optional
         LOCAL_MODULE_STEM := libmfxsw32
@@ -94,6 +97,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfx_hevce_hw32
+        LOCAL_PROPRIETARY_MODULE := true
         LOCAL_MODULE_CLASS := SHARED_LIBRARIES
         LOCAL_MODULE_TAGS := optional
         LOCAL_MODULE_STEM := libmfx_hevce_hw32
@@ -105,6 +109,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfxhw64
+        LOCAL_PROPRIETARY_MODULE := true
         LOCAL_MODULE_CLASS := SHARED_LIBRARIES
         LOCAL_MODULE_TAGS := optional
         LOCAL_MODULE_STEM := libmfxhw64
@@ -116,6 +121,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfxsw64
+        LOCAL_PROPRIETARY_MODULE := true
         LOCAL_MODULE_CLASS := SHARED_LIBRARIES
         LOCAL_MODULE_TAGS := optional
         LOCAL_MODULE_STEM := libmfxsw64
@@ -127,6 +133,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfx_hevce_hw64
+        LOCAL_PROPRIETARY_MODULE := true
         LOCAL_MODULE_CLASS := SHARED_LIBRARIES
         LOCAL_MODULE_TAGS := optional
         LOCAL_MODULE_STEM := libmfx_hevce_hw64
@@ -139,6 +146,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
         ifneq ($(BOARD_HAVE_OMX_SRC),true)
             include $(CLEAR_VARS)
             LOCAL_MODULE := libmfx_omx_core
+            LOCAL_PROPRIETARY_MODULE := true
             LOCAL_MODULE_CLASS := SHARED_LIBRARIES
             LOCAL_MODULE_TAGS := optional
             LOCAL_MODULE_STEM := libmfx_omx_core
@@ -151,6 +159,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
             include $(CLEAR_VARS)
             LOCAL_MODULE := libmfx_omx_components_hw
+            LOCAL_PROPRIETARY_MODULE := true
             LOCAL_MODULE_CLASS := SHARED_LIBRARIES
             LOCAL_MODULE_TAGS := optional
             LOCAL_MODULE_STEM := libmfx_omx_components_hw
@@ -163,6 +172,7 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
 
             include $(CLEAR_VARS)
             LOCAL_MODULE := libmfx_omx_components_sw
+            LOCAL_PROPRIETARY_MODULE := true
             LOCAL_MODULE_CLASS := SHARED_LIBRARIES
             LOCAL_MODULE_TAGS := optional
             LOCAL_MODULE_STEM := libmfx_omx_components_sw
