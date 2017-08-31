@@ -184,18 +184,6 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
             include $(BUILD_PREBUILT)
         endif
 
-        # Executables
-        ifeq ($(MEDIASDK_TEST_APPS),true)
-            include $(CLEAR_VARS)
-
-            LOCAL_PREBUILT_EXECUTABLES := \
-                bin/$(TARGET_ARCH)/sample_decode \
-                bin/$(TARGET_ARCH)/sample_encode
-
-            LOCAL_MODULE_TAGS := optional
-            include $(BUILD_MULTI_PREBUILT)
-        endif
-
     endif
 
 endif

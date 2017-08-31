@@ -16,15 +16,6 @@ ifeq ($(USE_MEDIASDK),true)
 
   UFO_ENABLE_GEN ?= gen7
 
-  # Call appropriate Android.mk for the platform
-  include $(MEDIASDK_BIN_REPO)/mediasdk/Android.mk
-
-
-  ifeq ($(strip $(UFO_ENABLE_GEN)), gen8)
-    include $(MEDIASDK_BIN_REPO)/mediasdk/cherrytrail/Android.mk
-    include $(MEDIASDK_BIN_REPO)/libmfxjpegdecoder/Android.mk
-  endif
-
   ifeq ($(strip $(UFO_ENABLE_GEN)), gen9)
     include $(MEDIASDK_BIN_REPO)/mediasdk/broxton/Android.mk
     include $(MEDIASDK_BIN_REPO)/libmfxjpegdecoder/Android.mk
