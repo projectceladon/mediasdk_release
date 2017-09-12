@@ -18,9 +18,6 @@ ifeq ($(USE_MEDIASDK),true)
 
   ifeq ($(strip $(UFO_ENABLE_GEN)), gen9)
     include $(MEDIASDK_BIN_REPO)/mediasdk/broxton/Android.mk
-    include $(MEDIASDK_BIN_REPO)/libmfxjpegdecoder/Android.mk
   endif
-
-  include $(MEDIASDK_BIN_REPO)/ISV/Android.mk
 
 endif
