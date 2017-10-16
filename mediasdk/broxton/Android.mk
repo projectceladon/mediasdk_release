@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin),)
+ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3),)
 
     # Include files
     include $(CLEAR_VARS)
