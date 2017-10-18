@@ -10,6 +10,8 @@ ifeq ($(USE_MEDIASDK),true)
     openmax/OMX_IntelIndexExt.h \
     openmax/OMX_IntelVideoExt.h
 
+  LOCAL_PROPRIETARY_MODULE := true
+
   include $(BUILD_COPY_HEADERS)
 
   MEDIASDK_BIN_REPO := $(LOCAL_PATH)

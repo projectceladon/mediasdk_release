@@ -33,6 +33,8 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3),)
         include/mfxvstructures.h \
         include/mfxwidi.h
 
+    LOCAL_PROPRIETARY_MODULE := true
+
     include $(BUILD_COPY_HEADERS)
 
     # Documents
