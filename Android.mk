@@ -21,6 +21,7 @@ ifeq ($(USE_MEDIASDK),true)
   # Call appropriate Android.mk for the platform
   ifeq ($(strip $(UFO_ENABLE_GEN)), gen9)
     include $(MEDIASDK_BIN_REPO)/mediasdk/broxton/Android.mk
+    include $(MEDIASDK_BIN_REPO)/mediasdk/icelake/Android.mk
   endif
 
 endif
