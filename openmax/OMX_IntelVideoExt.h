@@ -328,6 +328,13 @@ typedef struct OMX_CONFIG_DUMMYFRAME {
     OMX_BOOL bInsertDummyFrame;
 } OMX_CONFIG_DUMMYFRAME;
 
+// The structure is used to configure DecodedOrder
+typedef struct OMX_CONFIG_DECODEDORDER {
+    OMX_U32 nSize;
+    OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;
+    OMX_BOOL bDecodedOrder;
+} OMX_CONFIG_DECODEDORDER;
 
 // The structure is used to make encoder to release all buffered surfaces
 typedef struct OMX_VIDEO_CONFIG_INTEL_ENCODER_BUFFER_FREE {
