@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter $(TARGET_BOARD_PLATFORM), kabylake),)
+ifneq ($(filter $(TARGET_BOARD_PLATFORM), kabylake icelakeu elkhartlake),)
 
     # Include files
     include $(CLEAR_VARS)
@@ -49,42 +49,11 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM), kabylake),)
     LOCAL_MODULE := mfx_prebuilts
     LOCAL_MODULE_TAGS := optional
     LOCAL_MODULE_OWNER := intel
-    LOCAL_REQUIRED_MODULES += libmfxhw32
     LOCAL_REQUIRED_MODULES += libmfx_omx_core
     LOCAL_REQUIRED_MODULES += libmfx_omx_components_hw
-    #ifeq ($(TARGET_ARCH), x86_64)
-        #LOCAL_REQUIRED_MODULES += libmfxhw64
-    #endif
     include $(BUILD_PHONY_PACKAGE)
 
     # Shared libraries
-    ifneq ($(BOARD_HAVE_MEDIASDK_SRC),true)
-        ifneq ($(BOARD_HAVE_MEDIASDK_OPEN_SOURCE),true)
-            include $(CLEAR_VARS)
-            LOCAL_MODULE := libmfxhw32
-            LOCAL_PROPRIETARY_MODULE := true
-            LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-            LOCAL_MODULE_TAGS := optional
-            LOCAL_MODULE_STEM := libmfxhw32
-            LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
-            LOCAL_MODULE_OWNER := intel
-            LOCAL_MULTILIB := 32
-            LOCAL_SRC_FILES_32 := lib/x86/libmfxhw32$(LOCAL_MODULE_SUFFIX)
-            include $(BUILD_PREBUILT)9
-            include $(CLEAR_VARS)
-            LOCAL_MODULE := libmfxhw64
-            LOCAL_PROPRIETARY_MODULE := true
-            LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-            LOCAL_MODULE_TAGS := optional
-            LOCAL_MODULE_STEM := libmfxhw64
-            LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
-            LOCAL_MODULE_OWNER := intel
-            LOCAL_MULTILIB := 64
-            LOCAL_SRC_FILES_64 := lib/x86_64/libmfxhw64$(LOCAL_MODULE_SUFFIX)
-            include $(BUILD_PREBUILT)
-        endif
-    endif
-
     ifneq ($(BOARD_HAVE_OMX_SRC),true)
         include $(CLEAR_VARS)
         LOCAL_MODULE := libmfx_omx_core
