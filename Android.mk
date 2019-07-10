@@ -1,4 +1,4 @@
-ifeq ($(USE_MEDIASDK),true)
+ifeq ($(USE_MEDIASDK),true) && ($(BOARD_HAVE_OMX_SRC),false)
   LOCAL_PATH := $(call my-dir)
   include $(CLEAR_VARS)
 
