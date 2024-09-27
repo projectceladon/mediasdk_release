@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3),)
+ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3 celadon),)
 
     # Include files
     include $(CLEAR_VARS)
@@ -44,15 +44,6 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3),)
     LOCAL_MODULE_RELATIVE_PATH := mediasdk
     include $(BUILD_PREBUILT)
 
-    # Prebuilt module
-    include $(CLEAR_VARS)
-    LOCAL_MODULE := mfx_prebuilts
-    LOCAL_MODULE_TAGS := optional
-    LOCAL_MODULE_OWNER := intel
-    LOCAL_REQUIRED_MODULES += libmfx_omx_core
-    LOCAL_REQUIRED_MODULES += libmfx_omx_components_hw
-    include $(BUILD_PHONY_PACKAGE)
-
     # Shared libraries
     ifneq ($(BOARD_HAVE_OMX_SRC),true)
         include $(CLEAR_VARS)
@@ -66,6 +57,9 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3),)
         LOCAL_MULTILIB := both
         LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_core$(LOCAL_MODULE_SUFFIX)
         LOCAL_SRC_FILES_64 := lib/x86_64/libmfx_omx_core$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
+        LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
+        LOCAL_CHECK_ELF_FILES := false
         include $(BUILD_PREBUILT)
 
         include $(CLEAR_VARS)
@@ -79,6 +73,81 @@ ifneq ($(filter $(TARGET_BOARD_PLATFORM),broxton gmin joule minnowboardv3),)
         LOCAL_MULTILIB := both
         LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_components_hw$(LOCAL_MODULE_SUFFIX)
         LOCAL_SRC_FILES_64 := lib/x86_64/libmfx_omx_components_hw$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
+        LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
+        LOCAL_CHECK_ELF_FILES := false
+        include $(BUILD_PREBUILT)
+
+        include $(CLEAR_VARS)
+        LOCAL_MODULE := libmfx_omx_components_sw
+        LOCAL_PROPRIETARY_MODULE := true
+        LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+        LOCAL_MODULE_TAGS := optional
+        LOCAL_MODULE_STEM := libmfx_omx_components_sw
+        LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+        LOCAL_MODULE_OWNER := intel
+        LOCAL_MULTILIB := both
+        LOCAL_SRC_FILES_32 := lib/x86/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
+        LOCAL_SRC_FILES_64 := lib/x86_64/libmfx_omx_components_sw$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
+        LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
+        LOCAL_CHECK_ELF_FILES := false
+        include $(BUILD_PREBUILT)
+
+        include $(CLEAR_VARS)
+        LOCAL_MODULE := libmfxhw32
+        LOCAL_PROPRIETARY_MODULE := true
+        LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+        LOCAL_MODULE_TAGS := optional
+        LOCAL_MODULE_STEM := libmfxhw32
+        LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+        LOCAL_MODULE_OWNER := intel
+        LOCAL_MULTILIB := 32
+        LOCAL_SRC_FILES_32 := lib/x86/libmfxhw32$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
+        LOCAL_CHECK_ELF_FILES := false
+        include $(BUILD_PREBUILT)
+
+        include $(CLEAR_VARS)
+        LOCAL_MODULE := libmfxhw64
+        LOCAL_PROPRIETARY_MODULE := true
+        LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+        LOCAL_MODULE_TAGS := optional
+        LOCAL_MODULE_STEM := libmfxhw64
+        LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+        LOCAL_MODULE_OWNER := intel
+        LOCAL_MULTILIB := 64
+        LOCAL_SRC_FILES_64 := lib/x86_64/libmfxhw64$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
+        LOCAL_CHECK_ELF_FILES := false
+        include $(BUILD_PREBUILT)
+
+        include $(CLEAR_VARS)
+        LOCAL_MODULE := libmfxsw32
+        LOCAL_PROPRIETARY_MODULE := true
+        LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+        LOCAL_MODULE_TAGS := optional
+        LOCAL_MODULE_STEM := libmfxsw32
+        LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+        LOCAL_MODULE_OWNER := intel
+        LOCAL_MULTILIB := 32
+        LOCAL_SRC_FILES_32 := lib/x86/libmfxsw32$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_32 := $(TARGET_OUT_VENDOR)/lib/
+        LOCAL_CHECK_ELF_FILES := false
+        include $(BUILD_PREBUILT)
+
+        include $(CLEAR_VARS)
+        LOCAL_MODULE := libmfxsw64
+        LOCAL_PROPRIETARY_MODULE := true
+        LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+        LOCAL_MODULE_TAGS := optional
+        LOCAL_MODULE_STEM := libmfxsw64
+        LOCAL_MODULE_SUFFIX := $(TARGET_SHLIB_SUFFIX)
+        LOCAL_MODULE_OWNER := intel
+        LOCAL_MULTILIB := 64
+        LOCAL_SRC_FILES_64 := lib/x86_64/libmfxsw64$(LOCAL_MODULE_SUFFIX)
+        LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/
+        LOCAL_CHECK_ELF_FILES := false
         include $(BUILD_PREBUILT)
     endif
 
